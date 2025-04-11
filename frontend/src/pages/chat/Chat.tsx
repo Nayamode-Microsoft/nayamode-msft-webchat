@@ -738,12 +738,20 @@ const Chat = () => {
       window.open(citation.url, '_blank')
     }
   }
-
   const parseCitationFromMessage = (message: ChatMessage) => {
-    if (message?.role && message?.role === 'tool' && typeof message?.content === 'string') {
+    if (message?.role === 'tool' && typeof message?.content === 'string') {
       try {
         const toolMessage = JSON.parse(message.content) as ToolMessageContent
-        return toolMessage.citations
+        let citations: Citation[] = []
+
+        if (typeof toolMessage.citations === 'string') {
+          citations = JSON.parse(toolMessage.citations).citations
+        } else {
+          citations = toolMessage.citations
+        }
+
+        console.log(citations)
+        return citations
       } catch {
         return []
       }
