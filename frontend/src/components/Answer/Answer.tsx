@@ -299,7 +299,7 @@ export const Answer = ({ answer, onCitationClicked, onExectResultClicked }: Prop
           </Stack>
         )}
         <Stack horizontal className={styles.answerFooter}>
-          {!!parsedAnswer?.citations.length && (
+          {!!answer?.citations.length && (
             <Stack.Item onKeyDown={e => (e.key === 'Enter' || e.key === ' ' ? toggleIsRefAccordionOpen() : null)}>
               <Stack style={{ width: '100%' }}>
                 <Stack horizontal horizontalAlign="start" verticalAlign="center">
@@ -309,11 +309,7 @@ export const Answer = ({ answer, onCitationClicked, onExectResultClicked }: Prop
                     aria-label="Open references"
                     tabIndex={0}
                     role="button">
-                    <span>
-                      {parsedAnswer.citations.length > 1
-                        ? parsedAnswer.citations.length + ' references'
-                        : '1 reference'}
-                    </span>
+                    <span>{answer.citations.length > 1 ? answer.citations.length + ' references' : '1 reference'}</span>
                   </Text>
                   <FontIcon
                     className={styles.accordionIcon}
@@ -347,7 +343,7 @@ export const Answer = ({ answer, onCitationClicked, onExectResultClicked }: Prop
         </Stack>
         {chevronIsExpanded && (
           <div className={styles.citationWrapper}>
-            {parsedAnswer?.citations.map((citation, idx) => {
+            {answer?.citations.map((citation, idx) => {
               return (
                 <span
                   title={createCitationFilepath(citation, ++idx)}
