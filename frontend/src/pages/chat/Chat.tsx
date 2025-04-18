@@ -217,7 +217,7 @@ const Chat = () => {
       conversation = {
         id: conversationId ?? uuid(),
         title: question as string,
-        messages: [systemMessage, userMessage],
+        messages: [userMessage],
         date: new Date().toISOString()
       }
     } else {
