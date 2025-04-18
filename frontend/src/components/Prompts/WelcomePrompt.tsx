@@ -5,10 +5,15 @@ import styles from './prompt.module.css'
 
 interface WelcomeGreetingProps {
   logo?: string
+  showSuggestedPrompts?: boolean
   onPromptSelect?: (prompt: string) => void
 }
 
-export const WelcomePrompt: React.FC<WelcomeGreetingProps> = ({ logo, onPromptSelect }) => {
+export const WelcomePrompt: React.FC<WelcomeGreetingProps> = ({
+  logo,
+  showSuggestedPrompts = false,
+  onPromptSelect
+}) => {
   const suggestedPrompts = [
     'Partner Practice Lead',
     'Partner Solution Architect',
@@ -36,30 +41,34 @@ export const WelcomePrompt: React.FC<WelcomeGreetingProps> = ({ logo, onPromptSe
           </Text>
         </Stack>
 
-        <Stack className={styles.promptsSection}>
-          <Text variant="large" styles={{ root: { fontWeight: FontWeights.semibold, marginBottom: '16px' } }}>
-            What role best describes you?
-          </Text>
+        {showSuggestedPrompts && (
+          <>
+            <Stack className={styles.promptsSection}>
+              <Text variant="large" styles={{ root: { fontWeight: FontWeights.semibold, marginBottom: '16px' } }}>
+                What role best describes you?
+              </Text>
 
-          <Stack tokens={{ childrenGap: 8 }}>
-            {suggestedPrompts.map((prompt, index) => (
-              <DefaultButton
-                key={index}
-                className={styles.promptButton}
-                onClick={() => handlePromptClick(prompt)}
-                text={prompt}
-                iconProps={{ iconName: 'ChevronRight', className: styles.buttonIcon }}
-              />
-            ))}
-          </Stack>
-        </Stack>
+              <Stack tokens={{ childrenGap: 8 }}>
+                {suggestedPrompts.map((prompt, index) => (
+                  <DefaultButton
+                    key={index}
+                    className={styles.promptButton}
+                    onClick={() => handlePromptClick(prompt)}
+                    text={prompt}
+                    iconProps={{ iconName: 'ChevronRight', className: styles.buttonIcon }}
+                  />
+                ))}
+              </Stack>
+            </Stack>
 
-        <Stack className={styles.footerSection}>
-          <Text className={styles.footerText}>
-            You can ask me questions, request analysis, or get help with various tasks.
-          </Text>
-          <Text className={styles.footerText}>I'm here to assist you with your business needs!</Text>
-        </Stack>
+            <Stack className={styles.footerSection}>
+              <Text className={styles.footerText}>
+                You can ask me questions, request analysis, or get help with various tasks.
+              </Text>
+              <Text className={styles.footerText}>I'm here to assist you with your business needs!</Text>
+            </Stack>
+          </>
+        )}
       </Stack>
     </Stack>
   )
