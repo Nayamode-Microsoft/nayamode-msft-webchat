@@ -41,7 +41,7 @@ class _UiSettings(BaseSettings):
         env_ignore_empty=True
     )
 
-    title: str = "Nayamode Microsoft"
+    title: str = "Nayamode Microsoft Chatbot"
     logo: Optional[str] = "https://scontent.fktm20-1.fna.fbcdn.net/v/t39.30808-1/418472351_958079179098520_1294696801805785538_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=101&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=xeoTV5D9IsAQ7kNvwHKz17y&_nc_oc=AdmCXB1W5pbT-tXYT2bocgeP1YZxgJCfmRM3snH5CkMJ8pai1FB-SznBbwrNGFaXaJI&_nc_zt=24&_nc_ht=scontent.fktm20-1.fna&_nc_gid=OqLnF4lA6Z4rIiJ7Gf3oVQ&oh=00_AfEHZgtJJDDrbZzkcgZGKkIURltZxyqCsUZeeMPHwHVGPw&oe=6807AEF5"
     chat_logo: Optional[str] = "https://scontent.fktm20-1.fna.fbcdn.net/v/t39.30808-1/418472351_958079179098520_1294696801805785538_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=101&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=xeoTV5D9IsAQ7kNvwHKz17y&_nc_oc=AdmCXB1W5pbT-tXYT2bocgeP1YZxgJCfmRM3snH5CkMJ8pai1FB-SznBbwrNGFaXaJI&_nc_zt=24&_nc_ht=scontent.fktm20-1.fna&_nc_gid=OqLnF4lA6Z4rIiJ7Gf3oVQ&oh=00_AfEHZgtJJDDrbZzkcgZGKkIURltZxyqCsUZeeMPHwHVGPw&oe=6807AEF5"
     chat_title: str = "Start chatting"
