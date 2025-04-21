@@ -1,7 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
-
 name: Build and deploy Python app to Azure Web App - nayamode-msft-webchat
 
 on:
@@ -31,7 +27,7 @@ jobs:
       - name: Install frontend dependencies
         run: |
           cd frontend
-          npm install
+          npm ci
           
       # Build frontend assets
       - name: Build frontend
@@ -50,18 +46,25 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r requirements.txt
       
-      # Create a clean deployment directory
-      - name: Prepare deployment directory
+      # Create an optimized deployment package
+      - name: Prepare deployment package
         run: |
           # Create a clean directory for deployment
           mkdir -p deploy_package
           
-          # Copy only necessary files
+          # Copy only necessary backend files
           cp -r *.py deploy_package/
           cp requirements.txt deploy_package/
           cp -r static deploy_package/ || true
           cp -r templates deploy_package/ || true
-          # Add any other necessary files/directories
+          
+          # Copy the built frontend files (adjust path as needed)
+          mkdir -p deploy_package/static/frontend
+          cp -r frontend/build/* deploy_package/static/frontend/ || true
+          
+          # Create a ZIP archive for faster upload
+          cd deploy_package
+          zip -r ../deploy_package.zip .
       
       # Deploy directly to Azure Web App
       - name: 'Deploy to Azure Web App'
@@ -71,4 +74,5 @@ jobs:
           app-name: 'nayamode-msft-webchat'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F2E4FF334F3A47E3BFDF0E55660689CE }}
-          package: deploy_package
+          package: deploy_package.zip
+          deployment-method: zip
