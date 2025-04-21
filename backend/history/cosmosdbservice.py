@@ -5,11 +5,12 @@ from azure.cosmos import exceptions
   
 class CosmosConversationClient():
     
-    def __init__(self, cosmosdb_endpoint: str, credential: any, database_name: str, container_name: str, enable_message_feedback: bool = False):
+    def __init__(self, cosmosdb_endpoint: str, credential: any, database_name: str, container_name: str, users_container_name: str, enable_message_feedback: bool = False):
         self.cosmosdb_endpoint = cosmosdb_endpoint
         self.credential = credential
         self.database_name = database_name
         self.container_name = container_name
+        self.users_container_name = users_container_name
         self.enable_message_feedback = enable_message_feedback
         try:
             self.cosmosdb_client = CosmosClient(self.cosmosdb_endpoint, credential=credential)
@@ -29,6 +30,11 @@ class CosmosConversationClient():
         except exceptions.CosmosResourceNotFoundError:
             raise ValueError("Invalid CosmosDB container name") 
         
+        try:
+            self.user_container_client = self.database_client.get_container_client(users_container_name)
+        except exceptions.CosmosResourceNotFoundError:
+            raise ValueError("Invalid CosmosDB user container name") 
+        
 
     async def ensure(self):
         if not self.cosmosdb_client or not self.database_client or not self.container_client:
@@ -42,6 +48,11 @@ class CosmosConversationClient():
             container_info = await self.container_client.read()
         except:
             return False, f"CosmosDB container {self.container_name} not found"
+        
+        try:
+            user_container_info = await self.user_container_client.read()
+        except:
+            return False, f"CosmosDB container {self.users_container_name} not found"
             
         return True, "CosmosDB client initialized successfully"
 
@@ -180,4 +191,31 @@ class CosmosConversationClient():
             messages.append(item)
 
         return messages
+    
+    async def create_or_update_user(self, uuid, user_id, user_name):
+        """Create or update user information in Cosmos DB"""
+        try:
+            user_container = self.user_container_client
+            user_item = {
+                "id": uuid,
+                "userId": user_id,
+                "name": user_name,
+                "createdAt": datetime.utcnow().isoformat(),
+            }
+
+            try:
+                existing_user = await user_container.read_item(item=user_id, partition_key=user_id)
+                # Update only if name changed
+                if existing_user.get("name") != user_name:
+                    existing_user["name"] = user_name
+                    await user_container.replace_item(item=user_id, body=existing_user)
+                return existing_user
+            except exceptions.CosmosResourceNotFoundError:
+                # User does not exist, create new
+                created_user = await user_container.create_item(body=user_item)
+                return created_user
+        except Exception as e:
+            print(e)
+            return None
+
 

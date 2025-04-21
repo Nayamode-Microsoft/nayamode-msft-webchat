@@ -226,6 +226,7 @@ async def init_cosmosdb_client():
                 credential=credential,
                 database_name=app_settings.chat_history.database,
                 container_name=app_settings.chat_history.conversations_container,
+                users_container_name=app_settings.chat_history.users_container,
                 enable_message_feedback=app_settings.chat_history.enable_feedback,
             )
         except Exception as e:
@@ -603,6 +604,7 @@ async def add_conversation():
     await cosmos_db_ready.wait()
     authenticated_user = get_authenticated_user_details(request_headers=request.headers)
     user_id = authenticated_user["user_principal_id"]
+    user_name = authenticated_user["user_name"]
 
     ## check request for conversation_id
     request_json = await request.get_json()
@@ -612,6 +614,12 @@ async def add_conversation():
         # make sure cosmos is configured
         if not current_app.cosmos_conversation_client:
             raise Exception("CosmosDB is not configured or not working")
+        
+        await current_app.cosmos_conversation_client.create_or_update_user(
+            uuid=str(uuid.uuid4()), 
+            user_id=user_id, 
+            user_name=user_name
+        )
 
         # check for the conversation_id, if the conversation is not set, we will create a new one
         history_metadata = {}
