@@ -765,8 +765,19 @@ const Chat = () => {
     // setActiveCitation(citation)
     // setIsCitationPanelOpen(true)
 
-    if (citation.url) {
-      window.open(citation.url, '_blank')
+    if (!citation.url) return
+
+    const fileUrl = citation.url
+    const lowerUrl = fileUrl.toLowerCase()
+
+    const isOfficeFile = /\.(pptx?|docx?|xlsx?)$/.test(lowerUrl)
+
+    if (isOfficeFile) {
+      const encodedUrl = encodeURIComponent(fileUrl)
+      const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`
+      window.open(officeViewerUrl, '_blank')
+    } else {
+      window.open(fileUrl, '_blank')
     }
   }
 
