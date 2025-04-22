@@ -4,6 +4,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 100%;
 }
 
 .chatIcon {
@@ -91,5 +92,13 @@
 
 .footerText {
   color: #605e5c;
+  margin-bottom: 8px;
+}
+
+.shimmerContainer {
+  width: 100%;
+}
+
+.shimmer-wrapper {
   margin-bottom: 8px;
 }

@@ -24,6 +24,7 @@ import {
   AzureSqlServerExecResults,
   ChatResponse,
   getUserInfo,
+  getUserRole,
   Conversation,
   historyGenerate,
   historyUpdate,
@@ -31,7 +32,10 @@ import {
   ChatHistoryLoadingState,
   CosmosDBStatus,
   ErrorMessage,
-  ExecResults
+  ExecResults,
+  UserRole,
+  UserUpdate,
+  userUpdate
 } from '../../api'
 import { Answer } from '../../components/Answer'
 import { QuestionInput } from '../../components/QuestionInput'
@@ -39,11 +43,19 @@ import { ChatHistoryPanel } from '../../components/ChatHistory/ChatHistoryPanel'
 import { AppStateContext } from '../../state/AppProvider'
 import { useBoolean } from '@fluentui/react-hooks'
 import { WelcomePrompt } from '../../components/Prompts/WelcomePrompt'
+import LoadingSpinner from '../../components/common/LoadingSpinner/LoadingSpinner'
 
 const enum messageStatus {
   NotRunning = 'Not Running',
   Processing = 'Processing',
   Done = 'Done'
+}
+
+const systemMessage: ChatMessage = {
+  id: uuid(),
+  role: 'assistant',
+  content: "Hello, I'm your partner program Chat Assistant. Ask me anything related to Microsoft Partner Program",
+  date: new Date().toISOString()
 }
 
 const Chat = () => {
@@ -52,8 +64,10 @@ const Chat = () => {
   const AUTH_ENABLED = appStateContext?.state.frontendSettings?.auth_enabled
   const chatMessageStreamEnd = useRef<HTMLDivElement | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isSettingUp, setIsSettingUp] = useState<boolean>(true)
   const [showLoadingMessage, setShowLoadingMessage] = useState<boolean>(false)
   const [activeCitation, setActiveCitation] = useState<Citation>()
+  const [userRole, setUserRole] = useState<UserRole>()
   const [isCitationPanelOpen, setIsCitationPanelOpen] = useState<boolean>(false)
   const [isIntentsPanelOpen, setIsIntentsPanelOpen] = useState<boolean>(false)
   const abortFuncs = useRef([] as AbortController[])
@@ -118,15 +132,23 @@ const Chat = () => {
   }, [appStateContext?.state.chatHistoryLoadingState])
 
   const getUserInfoList = async () => {
-    if (!AUTH_ENABLED) {
-      setShowAuthMessage(false)
-      return
-    }
-    const userInfoList = await getUserInfo()
-    if (userInfoList.length === 0 && window.location.hostname !== '127.0.0.1') {
-      setShowAuthMessage(true)
-    } else {
-      setShowAuthMessage(false)
+    try {
+      setIsSettingUp(true)
+      if (!AUTH_ENABLED) {
+        setShowAuthMessage(false)
+        return
+      }
+      const userInfoList = await getUserInfo()
+      if (userInfoList.length === 0 && window.location.hostname !== '127.0.0.1') {
+        setShowAuthMessage(true)
+      } else {
+        setShowAuthMessage(false)
+      }
+
+      const userRole = await getUserRole()
+      setUserRole(userRole)
+    } finally {
+      setIsSettingUp(false)
     }
   }
 
@@ -557,6 +579,20 @@ const Chat = () => {
     return abortController.abort()
   }
 
+  const storeUserRole = async (role: string) => {
+    try {
+      setIsSettingUp(true)
+      const payload: UserUpdate = {
+        role: role
+      }
+      const response = await userUpdate(payload)
+
+      getUserInfoList()
+    } finally {
+      setIsSettingUp(false)
+    }
+  }
+
   const clearChat = async () => {
     setClearingChat(true)
     if (appStateContext?.state.currentChat?.id && appStateContext?.state.isCosmosDBAvailable.cosmosDB) {
@@ -786,6 +822,7 @@ const Chat = () => {
   const disabledButton = () => {
     return (
       isLoading ||
+      isSettingUp ||
       (messages && messages.length === 0) ||
       clearingChat ||
       appStateContext?.state.chatHistoryLoadingState === ChatHistoryLoadingState.Loading
@@ -794,7 +831,11 @@ const Chat = () => {
 
   return (
     <div className={styles.container} role="main">
-      {showAuthMessage ? (
+      {isSettingUp ? (
+        <>
+          <LoadingSpinner fullscreen customSize={72} />
+        </>
+      ) : showAuthMessage ? (
         <Stack className={styles.chatEmptyState}>
           <ShieldLockRegular
             className={styles.chatIcon}
@@ -824,19 +865,38 @@ const Chat = () => {
       ) : (
         <Stack horizontal className={styles.chatRoot}>
           <div className={styles.chatContainer}>
-            {!messages || messages.length < 1 ? (
+            {!userRole?.exists ? (
               <WelcomePrompt
                 logo={logo}
+                loading={isSettingUp || !appStateContext?.state.isCosmosDBAvailable?.cosmosDB}
+                showSuggestedPrompts={!isSettingUp && !userRole?.exists}
                 onPromptSelect={prompt => {
-                  appStateContext?.state.isCosmosDBAvailable?.cosmosDB
-                    ? makeApiRequestWithCosmosDB(prompt)
-                    : makeApiRequestWithoutCosmosDB(prompt)
+                  if (appStateContext?.state.isCosmosDBAvailable?.cosmosDB) {
+                    storeUserRole(prompt)
+                  }
                 }}
               />
             ) : (
               <div className={styles.chatMessageStream} style={{ marginBottom: isLoading ? '40px' : '0px' }} role="log">
+                <div className={styles.chatMessageGpt}>
+                  {typeof systemMessage.content === 'string' && (
+                    <Answer
+                      feedbackRequired={false}
+                      answer={{
+                        answer: systemMessage.content,
+                        citations: [],
+                        generated_chart: null,
+                        message_id: systemMessage.id,
+                        feedback: systemMessage.feedback,
+                        exec_results: execResults
+                      }}
+                      onCitationClicked={c => onShowCitation(c)}
+                      onExectResultClicked={() => onShowExecResult(answerId)}
+                    />
+                  )}
+                </div>
                 {messages.map((answer, index) => (
-                  <>
+                  <div key={`${index}+${answer.id}`}>
                     {answer.role === 'user' ? (
                       <div className={styles.chatMessageUser} tabIndex={0}>
                         <div className={styles.chatMessageUserMessage}>
@@ -882,7 +942,7 @@ const Chat = () => {
                         </span>
                       </div>
                     ) : null}
-                  </>
+                  </div>
                 ))}
                 {showLoadingMessage && (
                   <>
@@ -987,7 +1047,7 @@ const Chat = () => {
               <QuestionInput
                 clearOnSend
                 placeholder="Type a new question..."
-                disabled={isLoading}
+                disabled={isLoading || isSettingUp}
                 onSend={(question, id) => {
                   appStateContext?.state.isCosmosDBAvailable?.cosmosDB
                     ? makeApiRequestWithCosmosDB(question, id)

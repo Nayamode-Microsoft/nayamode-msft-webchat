@@ -18,11 +18,12 @@ import styles from './Answer.module.css'
 
 interface Props {
   answer: AskResponse
+  feedbackRequired?: boolean
   onCitationClicked: (citedDocument: Citation) => void
   onExectResultClicked: (answerId: string) => void
 }
 
-export const Answer = ({ answer, onCitationClicked, onExectResultClicked }: Props) => {
+export const Answer = ({ answer, feedbackRequired = true, onCitationClicked, onExectResultClicked }: Props) => {
   const initializeAnswerFeedback = (answer: AskResponse) => {
     if (answer.message_id == undefined) return undefined
     if (answer.feedback == undefined) return undefined
@@ -31,7 +32,7 @@ export const Answer = ({ answer, onCitationClicked, onExectResultClicked }: Prop
     return Feedback.Neutral
   }
 
-  const [isRefAccordionOpen, { toggle: toggleIsRefAccordionOpen }] = useBoolean(false)
+  const [isRefAccordionOpen, { toggle: toggleIsRefAccordionOpen }] = useBoolean(true)
   const filePathTruncationLimit = 50
 
   const parsedAnswer = useMemo(() => parseAnswer(answer), [answer])
@@ -261,7 +262,7 @@ export const Answer = ({ answer, onCitationClicked, onExectResultClicked }: Prop
               )}
             </Stack.Item>
             <Stack.Item className={styles.answerHeader}>
-              {FEEDBACK_ENABLED && answer.message_id !== undefined && (
+              {FEEDBACK_ENABLED && answer.message_id !== undefined && feedbackRequired && (
                 <Stack horizontal horizontalAlign="space-between">
                   <ThumbLike20Filled
                     aria-hidden="false"

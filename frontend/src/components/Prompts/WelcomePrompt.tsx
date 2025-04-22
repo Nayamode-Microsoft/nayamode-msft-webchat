@@ -2,15 +2,18 @@ import React from 'react'
 import { Stack, Text, DefaultButton, FontWeights } from '@fluentui/react'
 
 import styles from './prompt.module.css'
+import { WelcomePromptSkeleton } from './WelcomePromptSkeleton'
 
 interface WelcomeGreetingProps {
   logo?: string
+  loading: boolean
   showSuggestedPrompts?: boolean
   onPromptSelect?: (prompt: string) => void
 }
 
 export const WelcomePrompt: React.FC<WelcomeGreetingProps> = ({
   logo,
+  loading,
   showSuggestedPrompts = false,
   onPromptSelect
 }) => {
@@ -25,6 +28,10 @@ export const WelcomePrompt: React.FC<WelcomeGreetingProps> = ({
     if (onPromptSelect) {
       onPromptSelect(prompt)
     }
+  }
+
+  if (loading) {
+    return <WelcomePromptSkeleton />
   }
 
   return (
