@@ -1,6 +1,15 @@
 import { chatHistorySampleData } from '../constants/chatHistory'
 
-import { ChatMessage, Conversation, ConversationRequest, CosmosDBHealth, CosmosDBStatus, UserInfo } from './models'
+import {
+  ChatMessage,
+  Conversation,
+  ConversationRequest,
+  CosmosDBHealth,
+  CosmosDBStatus,
+  UserInfo,
+  UserRole,
+  UserUpdate
+} from './models'
 
 export async function conversationApi(options: ConversationRequest, abortSignal: AbortSignal): Promise<Response> {
   const response = await fetch('/conversation', {
@@ -25,7 +34,41 @@ export async function getUserInfo(): Promise<UserInfo[]> {
   }
 
   const payload = await response.json()
+
   return payload
+}
+
+export async function getUserRole(): Promise<UserRole> {
+  const userDetailsResponse = await fetch('/user/details')
+
+  const userDetails = await userDetailsResponse.json()
+
+  return userDetails
+}
+
+export const userUpdate = async (user: UserUpdate): Promise<Response> => {
+  const response = await fetch('/user/update', {
+    method: 'POST',
+    body: JSON.stringify({
+      role: user.role
+    }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(async res => {
+      return res
+    })
+    .catch(_err => {
+      console.error('There was an issue fetching your data.')
+      const errRes: Response = {
+        ...new Response(),
+        ok: false,
+        status: 500
+      }
+      return errRes
+    })
+  return response
 }
 
 // export const fetchChatHistoryInit = async (): Promise<Conversation[] | null> => {

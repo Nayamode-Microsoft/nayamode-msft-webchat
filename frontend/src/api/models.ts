@@ -97,6 +97,18 @@ export type UserInfo = {
   user_id: string
 }
 
+export type UserRole = {
+  user_id: string
+  name: string
+  role: string
+  // flag for the user has already a role stored in users container
+  exists: boolean
+}
+
+export interface UserUpdate {
+  role: string
+}
+
 export enum CosmosDBStatus {
   NotConfigured = 'CosmosDB is not configured',
   NotWorking = 'CosmosDB is not working',

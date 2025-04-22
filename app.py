@@ -578,7 +578,73 @@ async def conversation_internal(request_body, request_headers):
             return jsonify({"error": str(ex)}), ex.status_code
         else:
             return jsonify({"error": str(ex)}), 500
+        
+@bp.route("/user/details", methods=["GET"])
+async def get_user_details():
+    await cosmos_db_ready.wait()
+    authenticated_user = get_authenticated_user_details(request_headers=request.headers)
+    user_id = authenticated_user["user_principal_id"]
+    
+    try:
+        # make sure cosmos is configured
+        if not current_app.cosmos_conversation_client:
+            raise Exception("CosmosDB is not configured or not working")
 
+        try:
+            user_details = await current_app.cosmos_conversation_client.get_user_details(
+                user_id=user_id,
+            )
+
+            if user_details:
+                # Add exists: True to the response
+                user_details["exists"] = True
+                return jsonify(user_details), 200
+            else:
+                # User not found, return the authenticated user details only
+                return jsonify({
+                    "id": user_id,
+                    "name": authenticated_user["user_name"],
+                    "exists": False
+                }), 200
+                
+        except Exception as e:
+            return jsonify({
+                "id": user_id,
+                "name": authenticated_user["user_name"],
+                "exists": False
+            }), 200
+            
+    except Exception as e:
+        logging.exception("Exception in /user/details")
+        return jsonify({"error": str(e)}), 500
+
+@bp.route("/user/update", methods=["POST"])
+async def update_user_details():
+    await cosmos_db_ready.wait()
+    authenticated_user = get_authenticated_user_details(request_headers=request.headers)
+    user_id = authenticated_user["user_principal_id"]
+    user_name = authenticated_user["user_name"]
+
+    try:
+        request_json = await request.get_json()
+
+        if not current_app.cosmos_conversation_client:
+            raise Exception("CosmosDB is not configured or not working")
+
+        role = request_json.get("role")  # This will be None if 'role' is not present
+
+        await current_app.cosmos_conversation_client.create_or_update_user(
+            uuid=str(uuid.uuid4()), 
+            user_id=user_id, 
+            user_name=user_name,
+            role=role
+        )
+
+        return jsonify({"status": "success"}), 200
+
+    except Exception as e:
+        logging.exception("Exception in /user/update")
+        return jsonify({"error": str(e)}), 500
 
 @bp.route("/conversation", methods=["POST"])
 async def conversation():
@@ -604,7 +670,6 @@ async def add_conversation():
     await cosmos_db_ready.wait()
     authenticated_user = get_authenticated_user_details(request_headers=request.headers)
     user_id = authenticated_user["user_principal_id"]
-    user_name = authenticated_user["user_name"]
 
     ## check request for conversation_id
     request_json = await request.get_json()
@@ -614,12 +679,6 @@ async def add_conversation():
         # make sure cosmos is configured
         if not current_app.cosmos_conversation_client:
             raise Exception("CosmosDB is not configured or not working")
-        
-        await current_app.cosmos_conversation_client.create_or_update_user(
-            uuid=str(uuid.uuid4()), 
-            user_id=user_id, 
-            user_name=user_name
-        )
 
         # check for the conversation_id, if the conversation is not set, we will create a new one
         history_metadata = {}

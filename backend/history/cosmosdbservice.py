@@ -191,8 +191,26 @@ class CosmosConversationClient():
             messages.append(item)
 
         return messages
-    
-    async def create_or_update_user(self, uuid, user_id, user_name):
+        
+    async def get_user_details(self, user_id):
+        query = "SELECT * FROM c WHERE c.userId = @userId"
+        parameters = [
+            {
+                "name": "@userId",
+                "value": user_id
+            }
+        ]
+
+        async for item in self.user_container_client.query_items(
+            query=query,
+            parameters=parameters,
+            partition_key=user_id
+        ):
+            return item  # Return first matching result
+
+        return None  # No user found
+
+    async def create_or_update_user(self, uuid, user_id, user_name, role):
         """Create or update user information in Cosmos DB"""
         try:
             user_container = self.user_container_client
@@ -200,6 +218,7 @@ class CosmosConversationClient():
                 "id": uuid,
                 "userId": user_id,
                 "name": user_name,
+                "role": role,
                 "createdAt": datetime.utcnow().isoformat(),
             }
 
