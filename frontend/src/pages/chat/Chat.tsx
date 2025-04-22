@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useContext, useLayoutEffect } from 'react'
+import { useRef, useState, useEffect, useContext, useLayoutEffect, useMemo } from 'react'
 import { CommandBarButton, IconButton, Dialog, DialogType, Stack } from '@fluentui/react'
 import { SquareRegular, ShieldLockRegular, ErrorCircleRegular } from '@fluentui/react-icons'
 
@@ -51,13 +51,6 @@ const enum messageStatus {
   Done = 'Done'
 }
 
-const systemMessage: ChatMessage = {
-  id: uuid(),
-  role: 'assistant',
-  content: "Hello, I'm your partner program Chat Assistant. Ask me anything related to Microsoft Partner Program",
-  date: new Date().toISOString()
-}
-
 const Chat = () => {
   const appStateContext = useContext(AppStateContext)
   const ui = appStateContext?.state.frontendSettings?.ui
@@ -87,6 +80,22 @@ const Chat = () => {
     closeButtonAriaLabel: 'Close',
     subText: errorMsg?.subtitle
   }
+
+  const systemMessage = useMemo(() => {
+    const systemMessage: ChatMessage = {
+      id: uuid(),
+      role: 'assistant',
+      content: userRole?.name
+        ? `**Welcome, ${userRole.name}!**  
+I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your partner-related questions and scenarios. Just let me know what you need!
+`
+        : `**Welcome,**  
+I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your partner-related questions and scenarios. Just let me know what you need!
+`,
+      date: new Date().toISOString()
+    }
+    return systemMessage
+  }, [userRole])
 
   const modalProps = {
     titleAriaId: 'labelId',
@@ -1058,7 +1067,7 @@ const Chat = () => {
               <QuestionInput
                 clearOnSend
                 placeholder="Type a new question..."
-                disabled={isLoading || isSettingUp}
+                disabled={isLoading || isSettingUp || !userRole?.exists}
                 onSend={(question, id) => {
                   appStateContext?.state.isCosmosDBAvailable?.cosmosDB
                     ? makeApiRequestWithCosmosDB(question, id)
