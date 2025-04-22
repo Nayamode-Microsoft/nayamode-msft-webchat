@@ -354,7 +354,7 @@ export const Answer = ({ answer, feedbackRequired = true, onCitationClicked, onE
                   className={styles.citationContainer}
                   aria-label={createCitationFilepath(citation, idx)}>
                   <div className={styles.citation} onClick={() => onCitationClicked(citation)}>
-                    {idx}
+                    {idx + 1}
                   </div>
                   <div title={createCitationFilepath(citation, ++idx)} onClick={() => onCitationClicked(citation)}>
                     {createCitationFilepath(citation, idx, true)}
