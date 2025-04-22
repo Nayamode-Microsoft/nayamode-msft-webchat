@@ -4,7 +4,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { nord } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { Checkbox, DefaultButton, Dialog, FontIcon, Stack, Text, TextField } from '@fluentui/react'
 import { useBoolean } from '@fluentui/react-hooks'
-import { ThumbDislike20Filled, ThumbLike20Filled } from '@fluentui/react-icons'
+import { ArrowDownload16Regular, ThumbDislike20Filled, ThumbLike20Filled } from '@fluentui/react-icons'
 import DOMPurify from 'dompurify'
 import remarkGfm from 'remark-gfm'
 import supersub from 'remark-supersub'
@@ -347,16 +347,38 @@ export const Answer = ({ answer, feedbackRequired = true, onCitationClicked, onE
             {answer?.citations.map((citation, idx) => {
               return (
                 <span
-                  title={createCitationFilepath(citation, ++idx)}
                   tabIndex={0}
                   role="link"
                   key={idx}
-                  onClick={() => onCitationClicked(citation)}
                   onKeyDown={e => (e.key === 'Enter' || e.key === ' ' ? onCitationClicked(citation) : null)}
                   className={styles.citationContainer}
                   aria-label={createCitationFilepath(citation, idx)}>
-                  <div className={styles.citation}>{idx}</div>
-                  {createCitationFilepath(citation, idx, true)}
+                  <div className={styles.citation} onClick={() => onCitationClicked(citation)}>
+                    {idx}
+                  </div>
+                  <div title={createCitationFilepath(citation, ++idx)} onClick={() => onCitationClicked(citation)}>
+                    {createCitationFilepath(citation, idx, true)}
+                  </div>
+
+                  <div
+                    title="Download File"
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center',
+                      marginLeft: 'auto'
+                    }}>
+                    <ArrowDownload16Regular
+                      onClick={() => {
+                        if (citation.url) {
+                          const a = document.createElement('a')
+                          a.href = citation.url
+                          a.download = citation.url.split('/').pop() || 'download' // Fallback to 'download' if undefined
+                          a.click()
+                        }
+                      }}
+                    />
+                  </div>
                 </span>
               )
             })}
