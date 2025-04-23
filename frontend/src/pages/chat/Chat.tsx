@@ -770,21 +770,54 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
   }, [showLoadingMessage, processMessages])
 
   const onShowCitation = (citation: Citation) => {
-    // This opens citation panel on right.
-    // setActiveCitation(citation)
-    // setIsCitationPanelOpen(true)
-
     if (!citation.url) return
 
     const fileUrl = citation.url
     const lowerUrl = fileUrl.toLowerCase()
 
-    const isOfficeFile = /\.(pptx?|docx?|xlsx?)$/.test(lowerUrl)
+    // Check if it's an Office file
+    if (/\.(pptx?|docx?|xlsx?|xls|doc|ppt)$/.test(lowerUrl)) {
+      // Determine which Office application to use based on file extension
+      let officeProtocol = ''
 
-    if (isOfficeFile) {
-      const encodedUrl = encodeURIComponent(fileUrl)
-      const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`
-      window.open(officeViewerUrl, '_blank')
+      if (/\.docx?$/.test(lowerUrl)) {
+        officeProtocol = 'ms-word:ofv|u|'
+      } else if (/\.xlsx?$|\.xls$/.test(lowerUrl)) {
+        officeProtocol = 'ms-excel:ofv|u|'
+      } else if (/\.pptx?$|\.ppt$/.test(lowerUrl)) {
+        officeProtocol = 'ms-powerpoint:ofv|u|'
+      }
+
+      if (officeProtocol) {
+        // Ensure the URL is properly formatted
+        // Make sure it's using https:// or http:// protocol
+        const fullUrl = fileUrl.startsWith('http') ? fileUrl : `https://${fileUrl}`
+
+        const url =
+          officeProtocol +
+          encodeURIComponent(
+            `${fullUrl}?sv=2024-11-04&ss=bfqt&srt=c&sp=rwdlacupiytfx&se=2025-04-29T16:19:41Z&st=2025-04-29T08:19:41Z&spr=https&sig=nlr%2FddV%2FDCuPk6Zk2YtJwQ7v76%2Bt0qYA7IKpsYdH74g%3D`
+          )
+
+        // For debugging
+        console.log('Attempting to open with: ', url)
+
+        try {
+          // Try to open in Office app
+          window.location.href = url
+
+          // Add a fallback in case the protocol handler fails
+          setTimeout(() => {
+            console.log('Office protocol may have failed, falling back to browser')
+            window.open(fullUrl, '_blank')
+          }, 1500)
+        } catch (e) {
+          console.error('Error opening in Office:', e)
+          window.open(fullUrl, '_blank')
+        }
+      } else {
+        window.open(fileUrl, '_blank')
+      }
     } else {
       window.open(fileUrl, '_blank')
     }
