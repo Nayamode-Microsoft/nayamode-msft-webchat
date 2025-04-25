@@ -36,6 +36,7 @@ export const Answer = ({ answer, feedbackRequired = true, onCitationClicked, onE
   const filePathTruncationLimit = 50
 
   const parsedAnswer = useMemo(() => parseAnswer(answer), [answer])
+  const uniqueCitations = useMemo(() => Array.from(new Map(answer.citations.map(c => [c.url, c])).values()), [answer])
   const [chevronIsExpanded, setChevronIsExpanded] = useState(isRefAccordionOpen)
   const [feedbackState, setFeedbackState] = useState(initializeAnswerFeedback(answer))
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false)
@@ -300,7 +301,7 @@ export const Answer = ({ answer, feedbackRequired = true, onCitationClicked, onE
           </Stack>
         )}
         <Stack horizontal className={styles.answerFooter}>
-          {!!answer?.citations.length && (
+          {!!uniqueCitations.length && (
             <Stack.Item onKeyDown={e => (e.key === 'Enter' || e.key === ' ' ? toggleIsRefAccordionOpen() : null)}>
               <Stack style={{ width: '100%' }}>
                 <Stack horizontal horizontalAlign="start" verticalAlign="center">
@@ -310,7 +311,7 @@ export const Answer = ({ answer, feedbackRequired = true, onCitationClicked, onE
                     aria-label="Open references"
                     tabIndex={0}
                     role="button">
-                    <span>{answer.citations.length > 1 ? answer.citations.length + ' references' : '1 reference'}</span>
+                    <span>{uniqueCitations.length > 1 ? uniqueCitations.length + ' references' : '1 reference'}</span>
                   </Text>
                   <FontIcon
                     className={styles.accordionIcon}
@@ -348,7 +349,7 @@ export const Answer = ({ answer, feedbackRequired = true, onCitationClicked, onE
         </Stack>
         {chevronIsExpanded && (
           <div className={styles.citationWrapper}>
-            {answer?.citations.map((citation, idx) => {
+            {uniqueCitations.map((citation, idx) => {
               return (
                 <span
                   tabIndex={0}

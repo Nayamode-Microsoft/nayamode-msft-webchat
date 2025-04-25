@@ -31,15 +31,26 @@ export function parseAnswer(answer: AskResponse): ParsedAnswer {
 
   let filteredCitations = [] as Citation[]
   let citationReindex = 0
+  const urlMap = new Map<string, number>() // A map to track URLs and their assigned citation numbers
+
   citationLinks?.forEach(link => {
     // Replacing the links/citations with number
     const citationIndex = link.slice(lengthDocN, link.length - 1)
     const citation = cloneDeep(answer.citations[Number(citationIndex) - 1]) as Citation
-    if (!filteredCitations.find(c => c.id === citationIndex) && citation) {
+
+    // Check if this URL already has an assigned citation number
+    const existingCitationIndex = urlMap.get(citation.url ?? '')
+    if (!existingCitationIndex && citation) {
       answerText = answerText.replaceAll(link, ` ^${++citationReindex}^ `)
       citation.id = citationIndex // original doc index to de-dupe
       citation.reindex_id = citationReindex.toString() // reindex from 1 for display
       filteredCitations.push(citation)
+
+      // Store the citation URL and its number in the map
+      urlMap.set(citation.url ?? '', citationReindex)
+    } else if (existingCitationIndex) {
+      // If the URL already exists, reuse the citation number
+      answerText = answerText.replaceAll(link, ` ^${existingCitationIndex}^ `)
     }
   })
 
