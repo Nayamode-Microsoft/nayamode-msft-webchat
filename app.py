@@ -242,7 +242,8 @@ async def init_cosmosdb_client():
 
 def build_user_context_message(user_details: dict, system_message_template: str) -> str:
     return (
-        f"You are responding to {user_details['name']}, whose role is {user_details['role']}.\n\n"
+        "Microsoft Partner Copilot Assistant \n\n"
+        f"You are responding to user name {user_details['name']}, whose role is {user_details['role']}.\n\n"
         f"Make sure to address them by name and acknowledge their role.\n\n"
         f"{system_message_template}"
     )
