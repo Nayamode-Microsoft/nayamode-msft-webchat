@@ -40,7 +40,6 @@ bp = Blueprint("routes", __name__, static_folder="static", template_folder="stat
 
 cosmos_db_ready = asyncio.Event()
 
-
 def create_app():
     app = Quart(__name__)
     app.register_blueprint(bp)
@@ -49,7 +48,9 @@ def create_app():
     @app.before_serving
     async def init():
         try:
-            app.cosmos_conversation_client = await init_cosmosdb_client()
+            global global_cosmos_conversation_client
+            global_cosmos_conversation_client =  await init_cosmosdb_client()
+            app.cosmos_conversation_client = global_cosmos_conversation_client
             cosmos_db_ready.set()
         except Exception as e:
             logging.exception("Failed to initialize CosmosDB client")
@@ -200,7 +201,7 @@ async def openai_remote_azure_function_call(function_name, function_args):
         "tool_name": function_name,
         "tool_arguments": json.loads(function_args)
     }
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=60.0) as client:
         response = await client.post(azure_functions_tool_url, data=json.dumps(body), headers=headers)
     response.raise_for_status()
 
@@ -239,16 +240,39 @@ async def init_cosmosdb_client():
     return cosmos_conversation_client
 
 
-def prepare_model_args(request_body, request_headers):
+def build_user_context_message(user_details: dict, system_message_template: str) -> str:
+    return (
+        f"You are responding to {user_details['name']}, whose role is {user_details['role']}.\n\n"
+        f"Make sure to address them by name and acknowledge their role.\n\n"
+        f"{system_message_template}"
+    )
+
+async def prepare_model_args(request_body, request_headers):
+    await cosmos_db_ready.wait()
+
     request_messages = request_body.get("messages", [])
     messages = []
+
+    authenticated_user = get_authenticated_user_details(request_headers)
+    user_id = authenticated_user["user_principal_id"]
+
+    user_details = {"name": "User", "role": "user"}  # fallback/default values
+
+    if global_cosmos_conversation_client:
+        try:
+            user_details = await global_cosmos_conversation_client.get_user_details(user_id=user_id)
+        except Exception as e:
+            logging.warning(f"Failed to get user details from cosmos_conversation_client: {e}")
+
+    # --- Set system message or role information
+    user_context_message = build_user_context_message(user_details, app_settings.azure_openai.system_message )
+
+    print(user_context_message)
+
     if not app_settings.datasource:
-        messages = [
-            {
-                "role": "system",
-                "content": app_settings.azure_openai.system_message
-            }
-        ]
+        messages = [{"role": "system", "content": user_context_message}]
+    else:
+        app_settings.search.role_information = user_context_message
 
     for message in request_messages:
         if message:
@@ -424,7 +448,8 @@ async def send_chat_request(request_body, request_headers):
             filtered_messages.append(message)
             
     request_body['messages'] = filtered_messages
-    model_args = prepare_model_args(request_body, request_headers)
+    
+    model_args = await prepare_model_args(request_body, request_headers)
 
     try:
         azure_openai_client = await init_openai_client()
