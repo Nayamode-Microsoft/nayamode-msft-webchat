@@ -201,7 +201,7 @@ async def openai_remote_azure_function_call(function_name, function_args):
         "tool_name": function_name,
         "tool_arguments": json.loads(function_args)
     }
-    async with httpx.AsyncClient(timeout=60.0) as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.post(azure_functions_tool_url, data=json.dumps(body), headers=headers)
     response.raise_for_status()
 
@@ -242,10 +242,8 @@ async def init_cosmosdb_client():
 
 def build_user_context_message(user_details: dict, system_message_template: str) -> str:
     return (
-        "Microsoft Partner Copilot Assistant \n\n"
-        f"You are responding to user name {user_details['name']}, whose role is {user_details['role']}.\n\n"
-        f"Make sure to address them by name and acknowledge their role.\n\n"
-        f"{system_message_template}"
+        f"{system_message_template}\n\n"
+        f"**User Information:** You are replying to **{user_details['name']}** and their role is **{ {user_details['role']}}** answer prompt accordingly."
     )
 
 async def prepare_model_args(request_body, request_headers):
