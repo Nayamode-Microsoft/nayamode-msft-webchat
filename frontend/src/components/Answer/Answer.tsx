@@ -69,22 +69,31 @@ export const Answer = ({ answer, feedbackRequired = true, onCitationClicked, onE
     setFeedbackState(currentFeedbackState)
   }, [appStateContext?.state.feedbackState, feedbackState, answer.message_id])
 
-  const createCitationFilepath = (citation: Citation, index: number, truncate: boolean = false) => {
+  const createCitationFilepath = (
+    citation: Citation,
+    index: number,
+    truncate: boolean = false,
+    showPart: boolean = false
+  ) => {
     let citationFilename = ''
 
     if (citation.filepath) {
       const part_i = citation.part_index ?? (citation.chunk_id ? parseInt(citation.chunk_id) + 1 : '')
+
+      const suffix = showPart && part_i !== '' ? ` - Part ${part_i}` : ''
+
       if (truncate && citation.filepath.length > filePathTruncationLimit) {
         const citationLength = citation.filepath.length
-        citationFilename = `${citation.filepath.substring(0, 20)}...${citation.filepath.substring(citationLength - 20)} - Part ${part_i}`
+        citationFilename = `${citation.filepath.substring(0, 20)}...${citation.filepath.substring(citationLength - 20)}${suffix}`
       } else {
-        citationFilename = `${citation.filepath} - Part ${part_i}`
+        citationFilename = `${citation.filepath}${suffix}`
       }
-    } else if (citation.filepath && citation.reindex_id) {
-      citationFilename = `${citation.filepath} - Part ${citation.reindex_id}`
+    } else if (citation.reindex_id) {
+      citationFilename = `${citation.reindex_id}`
     } else {
       citationFilename = `Citation ${index}`
     }
+
     return citationFilename
   }
 

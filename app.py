@@ -243,7 +243,7 @@ async def init_cosmosdb_client():
 def build_user_context_message(user_details: dict, system_message_template: str) -> str:
     return (
         f"{system_message_template}\n\n"
-        f"**User Information:** You are replying to **{user_details['name']}** and their role is **{ {user_details['role']}}** answer prompt accordingly."
+        f"**User Information:** You are replying to {user_details['name']} and their role is {user_details['role']} answer prompt accordingly."
     )
 
 async def prepare_model_args(request_body, request_headers):
