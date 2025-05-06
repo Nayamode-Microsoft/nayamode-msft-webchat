@@ -627,14 +627,14 @@ async def get_user_details():
                 # User not found, return the authenticated user details only
                 return jsonify({
                     "id": user_id,
-                    "name": authenticated_user["user_name"],
+                    "name": authenticated_user["full_name"],
                     "exists": False
                 }), 200
                 
         except Exception as e:
             return jsonify({
                 "id": user_id,
-                "name": authenticated_user["user_name"],
+                "name": authenticated_user["full_name"],
                 "exists": False
             }), 200
             
@@ -647,7 +647,7 @@ async def update_user_details():
     await cosmos_db_ready.wait()
     authenticated_user = get_authenticated_user_details(request_headers=request.headers)
     user_id = authenticated_user["user_principal_id"]
-    user_name = authenticated_user["user_name"]
+    user_name = authenticated_user["full_name"]
 
     try:
         request_json = await request.get_json()
