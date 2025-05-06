@@ -56,7 +56,13 @@ def get_authenticated_user_details(request_headers):
     except Exception as e:
         logging.error(f"Error decoding client principal: {str(e)}")
 
-    user_object['full_name'] = full_name
     logging.info("User authentication details parsed successfully.")
+    
+    if not full_name:
+        user_object['full_name'] = user_object['user_name']
+    else:
+        user_object['full_name'] = full_name
+        
+    logging.info("User full name has been set")
 
     return user_object
