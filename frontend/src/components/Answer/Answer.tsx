@@ -8,7 +8,7 @@ import { ArrowDownload16Regular, ThumbDislike20Filled, ThumbLike20Filled } from 
 import DOMPurify from 'dompurify'
 import remarkGfm from 'remark-gfm'
 import supersub from 'remark-supersub'
-import { AskResponse, Citation, Feedback, historyMessageFeedback } from '../../api'
+import { AskResponse, BlobCitation, Citation, Feedback, historyMessageFeedback } from '../../api'
 import { XSSAllowTags, XSSAllowAttributes } from '../../constants/sanatizeAllowables'
 import { AppStateContext } from '../../state/AppProvider'
 
@@ -19,7 +19,7 @@ import styles from './Answer.module.css'
 interface Props {
   answer: AskResponse
   feedbackRequired?: boolean
-  onCitationClicked: (citedDocument: Citation) => void
+  onCitationClicked: (url: string) => void
   onExectResultClicked: (answerId: string) => void
 }
 
@@ -95,6 +95,23 @@ export const Answer = ({ answer, feedbackRequired = true, onCitationClicked, onE
     }
 
     return citationFilename
+  }
+
+  const createBlobCitationFilepath = (citation: BlobCitation, index: number, truncate: boolean = false): string => {
+    const filePathTruncationLimit = 80 // set this as per your design constraints
+    if (citation.filepath) {
+      if (truncate && citation.filepath.length > filePathTruncationLimit) {
+        const len = citation.filepath.length
+        return `${citation.filepath.substring(0, 20)}...${citation.filepath.substring(len - 20)}`
+      }
+      return citation.filepath
+    }
+
+    if (citation.title) {
+      return citation.title
+    }
+
+    return `Citation ${index}`
   }
 
   const onLikeResponseClicked = async () => {
@@ -310,7 +327,7 @@ export const Answer = ({ answer, feedbackRequired = true, onCitationClicked, onE
           </Stack>
         )}
         <Stack horizontal className={styles.answerFooter}>
-          {!!uniqueCitations.length && (
+          {!!answer.blob_citations.length && (
             <Stack.Item onKeyDown={e => (e.key === 'Enter' || e.key === ' ' ? toggleIsRefAccordionOpen() : null)}>
               <Stack style={{ width: '100%' }}>
                 <Stack horizontal horizontalAlign="start" verticalAlign="center">
@@ -320,7 +337,9 @@ export const Answer = ({ answer, feedbackRequired = true, onCitationClicked, onE
                     aria-label="Open references"
                     tabIndex={0}
                     role="button">
-                    <span>{uniqueCitations.length > 1 ? uniqueCitations.length + ' references' : '1 reference'}</span>
+                    <span>
+                      {answer.blob_citations.length > 1 ? answer.blob_citations.length + ' references' : '1 reference'}
+                    </span>
                   </Text>
                   <FontIcon
                     className={styles.accordionIcon}
@@ -358,20 +377,28 @@ export const Answer = ({ answer, feedbackRequired = true, onCitationClicked, onE
         </Stack>
         {chevronIsExpanded && (
           <div className={styles.citationWrapper}>
-            {uniqueCitations.map((citation, idx) => {
+            {answer.blob_citations.map((citation, idx) => {
               return (
                 <span
                   tabIndex={0}
                   role="link"
                   key={idx}
-                  onKeyDown={e => (e.key === 'Enter' || e.key === ' ' ? onCitationClicked(citation) : null)}
+                  onKeyDown={e =>
+                    (e.key === 'Enter' || e.key === ' ') && citation.url ? onCitationClicked(citation.url) : null
+                  }
                   className={styles.citationContainer}
-                  aria-label={createCitationFilepath(citation, idx)}>
-                  <div className={styles.citation} onClick={() => onCitationClicked(citation)}>
+                  // aria-label={createCitationFilepath(citation, idx)}
+                >
+                  <div
+                    className={styles.citation}
+                    onClick={() => (citation.url ? onCitationClicked(citation.url) : null)}>
                     {idx + 1}
                   </div>
-                  <div title={createCitationFilepath(citation, ++idx)} onClick={() => onCitationClicked(citation)}>
-                    {createCitationFilepath(citation, idx, true)}
+                  <div
+                    // title={createCitationFilepath(citation, ++idx)}
+                    onClick={() => (citation.url ? onCitationClicked(citation.url) : null)}>
+                    {/* {createCitationFilepath(citation, idx, true)} */}
+                    {createBlobCitationFilepath(citation, idx, true)}
                   </div>
 
                   <div

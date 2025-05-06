@@ -35,7 +35,8 @@ import {
   ExecResults,
   UserRole,
   UserUpdate,
-  userUpdate
+  userUpdate,
+  BlobCitation
 } from '../../api'
 import { Answer } from '../../components/Answer'
 import { QuestionInput } from '../../components/QuestionInput'
@@ -769,14 +770,14 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
     chatMessageStreamEnd.current?.scrollIntoView({ behavior: 'smooth' })
   }, [showLoadingMessage, processMessages])
 
-  const onShowCitation = (citation: Citation) => {
+  const onShowCitation = (url: string) => {
     // This opens citation panel on right.
     // setActiveCitation(citation)
     // setIsCitationPanelOpen(true)
 
-    if (!citation.url) return
+    if (!url) return
 
-    const fileUrl = citation.url
+    const fileUrl = url
     const lowerUrl = fileUrl.toLowerCase()
 
     const isOfficeFile = /\.(pptx?|docx?|xlsx?)$/.test(lowerUrl)
@@ -803,6 +804,30 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
     if (message?.role === 'tool' && typeof message?.content === 'string') {
       try {
         const toolMessage = JSON.parse(message.content) as ToolMessageContent
+
+        let citations: Citation[] = []
+
+        if (typeof toolMessage.citations === 'string') {
+          citations = JSON.parse(toolMessage.citations).citations
+        } else {
+          citations = toolMessage.citations
+        }
+
+        return citations
+      } catch {
+        return []
+      }
+    }
+    return []
+  }
+
+  const parseBlobCitationFromMessage = (message: ChatMessage) => {
+    if (message?.role === 'tool' && typeof message?.content === 'string') {
+      try {
+        const toolMessage = JSON.parse(message.content) as ToolMessageContent
+
+        console.log(toolMessage)
+
         let citations: Citation[] = []
 
         if (typeof toolMessage.citations === 'string') {
@@ -812,7 +837,15 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
         }
 
         console.log(citations)
-        return citations
+
+        //Remove this if using AI Search directly. This handle citations as string only
+        let blobCitations: BlobCitation[] = (citations as unknown as string[]).map((val: string) => ({
+          url: val,
+          title: val.split('/').pop() || '',
+          filepath: val.split('/').pop() || ''
+        }))
+
+        return blobCitations
       } catch {
         return []
       }
@@ -905,6 +938,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
                       answer={{
                         answer: systemMessage.content,
                         citations: [],
+                        blob_citations: [],
                         generated_chart: null,
                         message_id: systemMessage.id,
                         feedback: systemMessage.feedback,
@@ -941,6 +975,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
                             answer={{
                               answer: answer.content,
                               citations: parseCitationFromMessage(messages[index - 1]),
+                              blob_citations: parseBlobCitationFromMessage(messages[index - 1]),
                               generated_chart: parsePlotFromMessage(messages[index - 1]),
                               message_id: answer.id,
                               feedback: answer.feedback,
@@ -971,6 +1006,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
                         answer={{
                           answer: 'Generating answer...',
                           citations: [],
+                          blob_citations: [],
                           generated_chart: null
                         }}
                         onCitationClicked={() => null}

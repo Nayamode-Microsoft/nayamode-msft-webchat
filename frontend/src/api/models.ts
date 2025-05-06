@@ -1,6 +1,7 @@
 export type AskResponse = {
   answer: string | []
   citations: Citation[]
+  blob_citations: BlobCitation[]
   generated_chart: string | null
   error?: string
   message_id?: string
@@ -18,6 +19,12 @@ export type Citation = {
   metadata: string | null
   chunk_id: string | null
   reindex_id: string | null
+}
+
+export type BlobCitation = {
+  filepath: string | null
+  title: string | null
+  url: string | null
 }
 
 export type ToolMessageContent = {
