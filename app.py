@@ -68,6 +68,10 @@ async def index():
         favicon=app_settings.ui.favicon
     )
 
+@bp.route("/healthz")
+async def health_check():
+    return {"status": "ok"}, 200
+
 
 @bp.route("/favicon.ico")
 async def favicon():
