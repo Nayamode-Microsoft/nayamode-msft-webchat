@@ -42,8 +42,8 @@ class _UiSettings(BaseSettings):
     )
 
     title: str = "Nayamode Microsoft Chatbot"
-    logo: Optional[str] = "https://scontent.fktm20-1.fna.fbcdn.net/v/t39.30808-1/418472351_958079179098520_1294696801805785538_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=101&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=xeoTV5D9IsAQ7kNvwHKz17y&_nc_oc=AdmCXB1W5pbT-tXYT2bocgeP1YZxgJCfmRM3snH5CkMJ8pai1FB-SznBbwrNGFaXaJI&_nc_zt=24&_nc_ht=scontent.fktm20-1.fna&_nc_gid=OqLnF4lA6Z4rIiJ7Gf3oVQ&oh=00_AfEHZgtJJDDrbZzkcgZGKkIURltZxyqCsUZeeMPHwHVGPw&oe=6807AEF5"
-    chat_logo: Optional[str] = "https://scontent.fktm20-1.fna.fbcdn.net/v/t39.30808-1/418472351_958079179098520_1294696801805785538_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=101&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=xeoTV5D9IsAQ7kNvwHKz17y&_nc_oc=AdmCXB1W5pbT-tXYT2bocgeP1YZxgJCfmRM3snH5CkMJ8pai1FB-SznBbwrNGFaXaJI&_nc_zt=24&_nc_ht=scontent.fktm20-1.fna&_nc_gid=OqLnF4lA6Z4rIiJ7Gf3oVQ&oh=00_AfEHZgtJJDDrbZzkcgZGKkIURltZxyqCsUZeeMPHwHVGPw&oe=6807AEF5"
+    logo: Optional[str] = "https://scontent.fktm8-1.fna.fbcdn.net/v/t39.30808-1/418472351_958079179098520_1294696801805785538_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=101&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=b2X5gtkj7PwQ7kNvwHb25mo&_nc_oc=AdlpZ5O-uZQu5UqIlVHwdJp4D6txAyzE5TWDfuLrcQyGO1ujqBuvgnXxpvWOueIay05ywu1wG2KAnY_fwyUi4Q93&_nc_zt=24&_nc_ht=scontent.fktm8-1.fna&_nc_gid=mpuq7G_o0WshIvjUenCdsw&oh=00_AfIwDjOF6IHLWfmBYkOo98VnAZxnlQDAj6mTtQyIjutQyA&oe=682A2E35"
+    chat_logo: Optional[str] = "https://scontent.fktm8-1.fna.fbcdn.net/v/t39.30808-1/418472351_958079179098520_1294696801805785538_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=101&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=b2X5gtkj7PwQ7kNvwHb25mo&_nc_oc=AdlpZ5O-uZQu5UqIlVHwdJp4D6txAyzE5TWDfuLrcQyGO1ujqBuvgnXxpvWOueIay05ywu1wG2KAnY_fwyUi4Q93&_nc_zt=24&_nc_ht=scontent.fktm8-1.fna&_nc_gid=mpuq7G_o0WshIvjUenCdsw&oh=00_AfIwDjOF6IHLWfmBYkOo98VnAZxnlQDAj6mTtQyIjutQyA&oe=682A2E35"
     chat_title: str = "Start chatting"
     chat_description: str = "This chatbot is configured to answer your questions"
     favicon: str = "/favicon.ico"
