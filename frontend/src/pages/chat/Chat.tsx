@@ -885,7 +885,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
       ) : (
         <Stack horizontal className={styles.chatRoot}>
           <div className={styles.chatContainer}>
-            {!userRole?.exists ? (
+            {!!AUTH_ENABLED && !userRole?.exists ? (
               <WelcomePrompt
                 logo={logo}
                 loading={isSettingUp || !appStateContext?.state.isCosmosDBAvailable?.cosmosDB}
@@ -1067,7 +1067,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
               <QuestionInput
                 clearOnSend
                 placeholder="Type a new question..."
-                disabled={isLoading || isSettingUp || !userRole?.exists}
+                disabled={isLoading || isSettingUp || (!!AUTH_ENABLED && !userRole?.exists)}
                 onSend={(question, id) => {
                   appStateContext?.state.isCosmosDBAvailable?.cosmosDB
                     ? makeApiRequestWithCosmosDB(question, id)
