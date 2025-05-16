@@ -2,7 +2,7 @@
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 # More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
 
-name: Build and deploy Python app to Azure Web App - webscraped-nayamode-msft-webapp
+name: Build and deploy Python app to Azure Web App - modernwork-nayamode-msft-webapp
 
 on:
   push:
@@ -72,6 +72,6 @@ jobs:
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: "webscraped-nayamode-msft-webapp"
+          app-name: "modernwork-nayamode-msft-webapp"
           slot-name: "Production"
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_A122CC3F854E4186A71AB37CC6B67B23 }}
