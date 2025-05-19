@@ -36,7 +36,9 @@ import {
   UserRole,
   UserUpdate,
   userUpdate,
-  BlobCitation
+  BlobCitation,
+  Invitation,
+  checkInvitation
 } from '../../api'
 import { Answer } from '../../components/Answer'
 import { QuestionInput } from '../../components/QuestionInput'
@@ -54,6 +56,15 @@ const enum messageStatus {
 
 const Chat = () => {
   const appStateContext = useContext(AppStateContext)
+
+  const AUTH_WITH_INVITATION = true
+  const searchParams = new URLSearchParams(window.location.search)
+  const email = searchParams.get('email')
+  const invitation_code = searchParams.get('invitation_code')
+  const [invitation, setInvitation] = useState<Invitation>()
+  const [checkingInvitation, setCheckingInvitation] = useState<boolean>(false)
+  const [showInvitationFailed, setShowInvitationFailed] = useState<boolean>(false)
+
   const ui = appStateContext?.state.frontendSettings?.ui
   const AUTH_ENABLED = appStateContext?.state.frontendSettings?.auth_enabled
   const chatMessageStreamEnd = useRef<HTMLDivElement | null>(null)
@@ -90,13 +101,17 @@ const Chat = () => {
         ? `**Welcome, ${userRole.name}!**  
 I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your partner-related questions and scenarios. Just let me know what you need!
 `
-        : `**Welcome,**  
+        : invitation?.invited_user
+          ? `**Welcome, ${invitation?.invited_user.name}!**  
+I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your partner-related questions and scenarios. Just let me know what you need!
+`
+          : `**Welcome,**  
 I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your partner-related questions and scenarios. Just let me know what you need!
 `,
       date: new Date().toISOString()
     }
     return systemMessage
-  }, [userRole])
+  }, [userRole, invitation])
 
   const modalProps = {
     titleAriaId: 'labelId',
@@ -107,6 +122,30 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
 
   const [ASSISTANT, TOOL, ERROR] = ['assistant', 'tool', 'error']
   const NO_CONTENT_ERROR = 'No content in messages object.'
+
+  const checkAuthInvitation = async (email: string, invitation_code: string) => {
+    try {
+      setCheckingInvitation(true)
+      const invitation = await checkInvitation(email, invitation_code)
+
+      if (invitation?.valid) {
+        setInvitation(invitation)
+        return
+      }
+      setShowInvitationFailed(true)
+    } catch {
+      console.log('ERROR')
+      setShowInvitationFailed(true)
+    } finally {
+      setCheckingInvitation(false)
+    }
+  }
+
+  useEffect(() => {
+    if (AUTH_WITH_INVITATION && email && invitation_code) {
+      checkAuthInvitation(email, invitation_code)
+    }
+  }, [email, invitation_code, AUTH_WITH_INVITATION])
 
   useEffect(() => {
     if (
@@ -884,7 +923,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
 
   return (
     <div className={styles.container} role="main">
-      {isSettingUp ? (
+      {isSettingUp || checkingInvitation ? (
         <>
           <LoadingSpinner fullscreen customSize={72} />
         </>
@@ -914,6 +953,14 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
           <h2 className={styles.chatEmptyStateSubtitle} style={{ fontSize: '20px' }}>
             <strong>If you deployed in the last 10 minutes, please wait and reload the page after 10 minutes.</strong>
           </h2>
+        </Stack>
+      ) : showInvitationFailed ? (
+        <Stack className={styles.chatEmptyState}>
+          <ShieldLockRegular
+            className={styles.chatIcon}
+            style={{ color: 'darkorange', height: '200px', width: '200px' }}
+          />
+          <h1 className={styles.chatEmptyStateTitle}>You are not invited to this application.</h1>
         </Stack>
       ) : (
         <Stack horizontal className={styles.chatRoot}>

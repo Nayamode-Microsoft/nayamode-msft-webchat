@@ -338,6 +338,13 @@ a {
   border-radius: 4px;
 }
 
+.chatEmptyState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+}
+
 @media (max-width: 480px) {
   .chatInput {
     width: 90%;
