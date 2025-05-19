@@ -761,6 +761,7 @@ class _BaseSettings(BaseSettings):
     )
     datasource_type: Optional[str] = None
     auth_enabled: bool = True
+    auth_with_invitation: bool = False
     sanitize_answer: bool = False
     use_promptflow: bool = False
 
