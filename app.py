@@ -232,6 +232,7 @@ async def init_cosmosdb_client():
                 database_name=app_settings.chat_history.database,
                 container_name=app_settings.chat_history.conversations_container,
                 users_container_name=app_settings.chat_history.users_container,
+                invitations_container_name=app_settings.chat_history.invitations_container,
                 enable_message_feedback=app_settings.chat_history.enable_feedback,
             )
         except Exception as e:
@@ -607,6 +608,37 @@ async def conversation_internal(request_body, request_headers):
         else:
             return jsonify({"error": str(ex)}), 500
         
+@bp.route("/check-invitation", methods=["POST"])
+async def check_invitation():
+    try:
+        request_json = await request.get_json()
+        user_email = request_json.get("email")
+        user_invitation_code = request_json.get("invitation_code")
+
+        if not user_email or not user_invitation_code:
+            return jsonify({"error": "email and invitation_code are required"}), 400
+
+        await cosmos_db_ready.wait()
+
+        if not current_app.cosmos_conversation_client:
+            raise Exception("CosmosDB is not configured or not working")
+
+        # Validate invitation
+        invitation = await current_app.cosmos_conversation_client.check_invitation(
+            user_email=user_email,
+            user_invitation_code=user_invitation_code
+        )
+
+        if invitation.get("valid"):
+            return jsonify({"valid": True, "invited_user": invitation.get("invited_user")}), 200
+        else:
+            return jsonify({"valid": False,}), 400
+
+    except Exception as e:
+        logging.exception("Exception in /check-invitation")
+        return jsonify({"error": str(e)}), 500
+
+
 @bp.route("/user/details", methods=["GET"])
 async def get_user_details():
     await cosmos_db_ready.wait()

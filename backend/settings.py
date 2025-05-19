@@ -64,6 +64,7 @@ class _ChatHistorySettings(BaseSettings):
     account_key: Optional[str] = None
     conversations_container: str
     users_container: str
+    invitations_container: str
     enable_feedback: bool = False
 
 

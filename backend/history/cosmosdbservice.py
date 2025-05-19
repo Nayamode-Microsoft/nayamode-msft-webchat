@@ -5,12 +5,13 @@ from azure.cosmos import exceptions
   
 class CosmosConversationClient():
     
-    def __init__(self, cosmosdb_endpoint: str, credential: any, database_name: str, container_name: str, users_container_name: str, enable_message_feedback: bool = False):
+    def __init__(self, cosmosdb_endpoint: str, credential: any, database_name: str, container_name: str, users_container_name: str, invitations_container_name: str, enable_message_feedback: bool = False):
         self.cosmosdb_endpoint = cosmosdb_endpoint
         self.credential = credential
         self.database_name = database_name
         self.container_name = container_name
         self.users_container_name = users_container_name
+        self.invitations_container_name = invitations_container_name
         self.enable_message_feedback = enable_message_feedback
         try:
             self.cosmosdb_client = CosmosClient(self.cosmosdb_endpoint, credential=credential)
@@ -35,6 +36,11 @@ class CosmosConversationClient():
         except exceptions.CosmosResourceNotFoundError:
             raise ValueError("Invalid CosmosDB user container name") 
         
+        try:
+            self.invitations_container_client = self.database_client.get_container_client(invitations_container_name)
+        except exceptions.CosmosResourceNotFoundError:
+            raise ValueError("Invalid CosmosDB invitations container name") 
+        
 
     async def ensure(self):
         if not self.cosmosdb_client or not self.database_client or not self.container_client:
@@ -53,6 +59,11 @@ class CosmosConversationClient():
             user_container_info = await self.user_container_client.read()
         except:
             return False, f"CosmosDB container {self.users_container_name} not found"
+        
+        try:
+            invitation_container_info = await self.invitations_container_client.read()
+        except:
+            return False, f"CosmosDB container {self.invitations_container_client} not found"
             
         return True, "CosmosDB client initialized successfully"
 
@@ -236,5 +247,40 @@ class CosmosConversationClient():
         except Exception as e:
             print(e)
             return None
+        
+    async def check_invitation(self, user_email: str, user_invitation_code: str):
+        query = "SELECT * FROM c WHERE c.email = @userEmail"
+        parameters = [
+            {
+                "name": "@userEmail",
+                "value": user_email
+            }
+        ]
+
+        try:
+            async for item in self.invitations_container_client.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=user_email
+            ):
+                # Check if invitation code matches
+                if item.get("invitationCode") == user_invitation_code:
+                    return {
+                        "valid": True,
+                        "invited_user": item
+                    }
+
+            # If no invitation found
+            return {
+                "valid": False,
+                "reason": "Invitation not found"
+            }
+        except Exception as e:
+            print(f"Error checking invitation for {user_email}: {e}")
+            return {
+                "valid": False,
+                "reason": "Error occurred while checking invitation"
+            }
+
 
 

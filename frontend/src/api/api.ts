@@ -6,6 +6,7 @@ import {
   ConversationRequest,
   CosmosDBHealth,
   CosmosDBStatus,
+  Invitation,
   UserInfo,
   UserRole,
   UserUpdate
@@ -394,4 +395,25 @@ export const historyMessageFeedback = async (messageId: string, feedback: string
       return errRes
     })
   return response
+}
+
+export async function checkInvitation(email: string, invitation_code: string): Promise<Invitation | undefined> {
+  const response = await fetch('/check-invitation', {
+    method: 'POST',
+    body: JSON.stringify({
+      email: email,
+      invitation_code: invitation_code
+    }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  if (!response.ok) {
+    console.log('No invitation found')
+    return undefined
+  }
+
+  const payload = await response.json()
+
+  return payload
 }

@@ -175,3 +175,11 @@ export enum Feedback {
   Manipulative = 'manipulative',
   OtherHarmful = 'other_harmlful'
 }
+
+export interface Invitation {
+  valid: boolean
+  invited_user?: {
+    name?: string
+    email?: string
+  }
+}
