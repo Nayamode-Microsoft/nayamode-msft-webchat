@@ -144,6 +144,8 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
   useEffect(() => {
     if (AUTH_WITH_INVITATION && email && invitation_code) {
       checkAuthInvitation(email, invitation_code)
+    } else {
+      setShowInvitationFailed(true)
     }
   }, [email, invitation_code, AUTH_WITH_INVITATION])
 
@@ -960,7 +962,8 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
             className={styles.chatIcon}
             style={{ color: 'darkorange', height: '200px', width: '200px' }}
           />
-          <h1 className={styles.chatEmptyStateTitle}>You are not invited to this application.</h1>
+          <h1 className={styles.chatEmptyStateTitle}>Seems like you are not invited to this application.</h1>
+          <h2 className={styles.chatEmptyStateSubtitle}>Please check your mail for invitation</h2>
         </Stack>
       ) : (
         <Stack horizontal className={styles.chatRoot}>
