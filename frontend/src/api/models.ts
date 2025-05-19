@@ -154,6 +154,7 @@ export type UI = {
 
 export type FrontendSettings = {
   auth_enabled?: string | null
+  auth_with_invitation?: string | null
   feedback_enabled?: string | null
   ui?: UI
   sanitize_answer?: boolean

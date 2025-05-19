@@ -57,7 +57,6 @@ const enum messageStatus {
 const Chat = () => {
   const appStateContext = useContext(AppStateContext)
 
-  const AUTH_WITH_INVITATION = true
   const searchParams = new URLSearchParams(window.location.search)
   const email = searchParams.get('email')
   const invitation_code = searchParams.get('invitation_code')
@@ -67,6 +66,7 @@ const Chat = () => {
 
   const ui = appStateContext?.state.frontendSettings?.ui
   const AUTH_ENABLED = appStateContext?.state.frontendSettings?.auth_enabled
+  const AUTH_WITH_INVITATION = appStateContext?.state.frontendSettings?.auth_with_invitation
   const chatMessageStreamEnd = useRef<HTMLDivElement | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isSettingUp, setIsSettingUp] = useState<boolean>(true)
@@ -142,10 +142,12 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
   }
 
   useEffect(() => {
-    if (AUTH_WITH_INVITATION && email && invitation_code) {
-      checkAuthInvitation(email, invitation_code)
-    } else {
-      setShowInvitationFailed(true)
+    if (AUTH_WITH_INVITATION) {
+      if (email && invitation_code) {
+        checkAuthInvitation(email, invitation_code)
+      } else {
+        setShowInvitationFailed(true)
+      }
     }
   }, [email, invitation_code, AUTH_WITH_INVITATION])
 
