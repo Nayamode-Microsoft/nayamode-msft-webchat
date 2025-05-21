@@ -743,10 +743,13 @@ async def add_conversation():
 
         # check for the conversation_id, if the conversation is not set, we will create a new one
         history_metadata = {}
+        messages = request_json["messages"]
+        user_email = messages[-1]["userEmail"]
         if not conversation_id:
             title = await generate_title(request_json["messages"])
+           
             conversation_dict = await current_app.cosmos_conversation_client.create_conversation(
-                user_id=user_id, title=title
+                user_id=user_id, user_email=user_email, title=title
             )
             conversation_id = conversation_dict["id"]
             history_metadata["title"] = title
@@ -754,13 +757,13 @@ async def add_conversation():
 
         ## Format the incoming message object in the "chat/completions" messages format
         ## then write it to the conversation history in cosmos
-        messages = request_json["messages"]
         if len(messages) > 0 and messages[-1]["role"] == "user":
             createdMessageValue = await current_app.cosmos_conversation_client.create_message(
                 uuid=str(uuid.uuid4()),
                 conversation_id=conversation_id,
                 user_id=user_id,
                 input_message=messages[-1],
+                user_email=user_email,
             )
             if createdMessageValue == "Conversation not found":
                 raise Exception(
@@ -791,7 +794,7 @@ async def update_conversation():
     ## check request for conversation_id
     request_json = await request.get_json()
     conversation_id = request_json.get("conversation_id", None)
-
+    
     try:
         # make sure cosmos is configured
         if not current_app.cosmos_conversation_client:
@@ -805,6 +808,7 @@ async def update_conversation():
         ## then write it to the conversation history in cosmos
         messages = request_json["messages"]
         if len(messages) > 0 and messages[-1]["role"] == "assistant":
+            user_email = messages[-1]["userEmail"]
             if len(messages) > 1 and messages[-2].get("role", None) == "tool":
                 # write the tool message first
                 await current_app.cosmos_conversation_client.create_message(
@@ -812,6 +816,7 @@ async def update_conversation():
                     conversation_id=conversation_id,
                     user_id=user_id,
                     input_message=messages[-2],
+                    user_email=user_email,
                 )
             # write the assistant message
             await current_app.cosmos_conversation_client.create_message(
@@ -819,6 +824,7 @@ async def update_conversation():
                 conversation_id=conversation_id,
                 user_id=user_id,
                 input_message=messages[-1],
+                user_email=user_email,
             )
         else:
             raise Exception("No bot messages found")

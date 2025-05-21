@@ -97,6 +97,7 @@ const Chat = () => {
     const systemMessage: ChatMessage = {
       id: uuid(),
       role: 'assistant',
+      userEmail: email ?? '',
       content: userRole?.name
         ? `**Welcome, ${userRole.name}!**  
 I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your partner-related questions and scenarios. Just let me know what you need!
@@ -111,7 +112,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
       date: new Date().toISOString()
     }
     return systemMessage
-  }, [userRole, invitation])
+  }, [userRole, email, invitation])
 
   const modalProps = {
     titleAriaId: 'labelId',
@@ -239,6 +240,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
         toolMessage = {
           id: uuid(),
           role: TOOL,
+          userEmail: email ?? '',
           content: resultMessage.context,
           date: new Date().toISOString()
         }
@@ -276,6 +278,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
     const systemMessage: ChatMessage = {
       id: uuid(),
       role: 'assistant',
+      userEmail: email ?? '',
       content: 'What role best describes you?',
       date: new Date().toISOString()
     }
@@ -283,6 +286,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
     const userMessage: ChatMessage = {
       id: uuid(),
       role: 'user',
+      userEmail: email ?? '',
       content: questionContent as string,
       date: new Date().toISOString()
     }
@@ -379,6 +383,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
         let errorChatMsg: ChatMessage = {
           id: uuid(),
           role: ERROR,
+          userEmail: email ?? '',
           content: errorMessage,
           date: new Date().toISOString()
         }
@@ -415,6 +420,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
     const userMessage: ChatMessage = {
       id: uuid(),
       role: 'user',
+      userEmail: email ?? '',
       content: questionContent as string,
       date: new Date().toISOString()
     }
@@ -454,6 +460,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
         let errorChatMsg: ChatMessage = {
           id: uuid(),
           role: ERROR,
+          userEmail: email ?? '',
           content: `There was an error generating a response. Chat history can't be saved at this time. ${errorResponseMessage}`,
           date: new Date().toISOString()
         }
@@ -575,6 +582,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
         let errorChatMsg: ChatMessage = {
           id: uuid(),
           role: ERROR,
+          userEmail: email ?? '',
           content: errorMessage,
           date: new Date().toISOString()
         }
@@ -595,6 +603,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
             let errorChatMsg: ChatMessage = {
               id: uuid(),
               role: ERROR,
+              userEmail: email ?? '',
               content: errorMessage,
               date: new Date().toISOString()
             }
@@ -765,7 +774,10 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
         const noContentError = appStateContext.state.currentChat.messages.find(m => m.role === ERROR)
 
         if (!noContentError) {
-          saveToDB(appStateContext.state.currentChat.messages, appStateContext.state.currentChat.id)
+          saveToDB(
+            appStateContext.state.currentChat.messages.map(message => ({ ...message, userEmail: email ?? '' })),
+            appStateContext.state.currentChat.id
+          )
             .then(res => {
               if (!res.ok) {
                 let errorMessage =
@@ -773,6 +785,7 @@ I'm your Microsoft Partner Copilot Assistant. I'm here to help you with your par
                 let errorChatMsg: ChatMessage = {
                   id: uuid(),
                   role: ERROR,
+                  userEmail: email ?? '',
                   content: errorMessage,
                   date: new Date().toISOString()
                 }
