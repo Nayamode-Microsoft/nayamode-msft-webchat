@@ -140,6 +140,7 @@ export const historyRead = async (convId: string): Promise<ChatMessage[]> => {
           const message: ChatMessage = {
             id: msg.id,
             role: msg.role,
+            userEmail: msg.userEmail,
             date: msg.createdAt,
             content: msg.content,
             feedback: msg.feedback ?? undefined
