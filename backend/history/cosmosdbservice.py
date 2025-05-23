@@ -267,6 +267,13 @@ class CosmosConversationClient():
             ):
                 # Check if invitation code matches
                 if item.get("invitationCode") == user_invitation_code:
+                    # Update the invitation to reflect it has been checked
+                    item["hasCheckedInvitation"] = True
+                    item["lastCheckedAt"] = datetime.utcnow().isoformat()
+
+                    # Upsert the modified item back into the container
+                    await self.invitations_container_client.replace_item(item=item["id"], body=item)
+
                     return {
                         "valid": True,
                         "invited_user": item
@@ -283,6 +290,3 @@ class CosmosConversationClient():
                 "valid": False,
                 "reason": "Error occurred while checking invitation"
             }
-
-
-
