@@ -766,11 +766,8 @@ async def add_conversation():
                 user_email=user_email,
             )
             if createdMessageValue == "Conversation not found":
-                raise Exception(
-                    "Conversation not found for the given conversation ID: "
-                    + conversation_id
-                    + "."
-                )
+              raise Exception(f"Conversation not found for the given conversation ID: {conversation_id}.")
+
         else:
             raise Exception("No user message found")
 
